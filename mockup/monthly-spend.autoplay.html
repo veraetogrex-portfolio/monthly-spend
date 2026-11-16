@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>T24 Monthly Spend — receipts come out of the category pocket</title>
+<link rel="stylesheet" href="_shared/nocturne.css">
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* the component from ../, dressed in Nocturne type */
+  #stage{background:var(--page);--font:var(--f-text);--display:var(--f-text);--print:var(--f-mono)}
+  #stage.grid::before{opacity:0}
+  #stage .ms{position:absolute;left:40px;top:36px;zoom:1;z-index:1}
+  .status-line{color:var(--text-3)}
+  body.autoplay #stage :focus-visible{outline:none}
+  .ms-month.li-hover:not([aria-checked="true"]){color:var(--text-2)}
+  body.autoplay #li-cursor{transition:none}   /* visible from frame one, no fade at the loop seam */
+</style>
+</head>
+<body>
+<div id="stage" class="grid" data-title="T24 Monthly Spend" data-url="veraetogrex-portfolio.github.io/monthly-spend">
+  <section class="ms" id="spend" aria-label="Card spending by month">
+    <header class="ms-top">
+      <p class="ms-brand"><b>VECTOR</b><span>Card spending</span></p>
+      <div class="ms-months" role="radiogroup" aria-label="Month">
+        <button class="ms-month" role="radio" data-m="1">Sep</button>
+        <button class="ms-month" role="radio" data-m="2">Oct</button>
+        <button class="ms-month" role="radio" data-m="3">Nov</button>
+        <span class="ms-month-pill" aria-hidden="true"></span>
+      </div>
+    </header>
+
+    <div class="ms-head">
+      <div>
+        <p class="ms-label">Spent in October</p>
+        <p class="ms-total" aria-live="polite">$1,240</p>
+      </div>
+      <button class="ms-back" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>All categories</button>
+    </div>
+
+    <!-- one pocket per category, as wide as its share of the month; its receipts are tucked inside -->
+    <div class="ms-ribbon" role="list" aria-label="Categories"></div>
+  </section>
+  <div class="status-line"><span>Veraetogrex · T24</span><span>Bank · monthly spending</span></div>
+</div>
+<script>window.AUTOPLAY = true;</script>
+<script src="_shared/stage.js"></script>
+<script src="../script.js"></script>
+<script>
+const sp = document.querySelector('#spend').spend;
+Stage.init({
+  reset: () => sp.reset(),
+  get cursorStart() { const r = Stage.rect(sp.month(3)); return [r.cx + 6, r.cy + 4]; },   // already on November in frame one
+  async demo(s) {
+    const t0 = performance.now();
+    const tab = m => { const r = s.rect(sp.month(m)); return [r.cx + 6, r.cy + 4]; };
+    await s.wait(120);
+    await s.click(sp.month(3), { ms: 160 });        // November: pockets resize, Shopping lifts and moves to the front
+    await s.until(t0, 1180);
+    const rb = s.rect(sp.front(3)), r = sp.rect(3);   // Shopping's pocket after the re-sort (ribbon coordinates)
+    await s.click([rb.x + r.x + r.w * .5, rb.y + 16 + r.y + 300], { ms: 340, hold: 180 });   // press it: the receipts come out
+    await s.move([rb.x + 1190, rb.y + 16 + 400], 520);                                       // out of the way while they read
+    await s.until(t0, 4300);
+    await s.click(sp.month(2), { ms: 420 });        // October, one motion: receipts back in, pockets stand up and re-sort
+    await s.until(t0, 6100);
+    await s.move(tab(3), 420);                        // rest on November again: the loop closes on frame one
+    await s.until(t0, 6800);
+  },
+});
+</script>
+</body>
+</html>
